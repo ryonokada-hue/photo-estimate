@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="写真見積もり">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icon-192.png">
+  <title>写真で見積もり - 片付けサポート関西</title>
+  <style>
+    :root{--primary:#2563eb;--primary-dark:#1d4ed8;--success:#16a34a;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;--gray-500:#6b7280;--gray-700:#374151;--gray-900:#111827;--radius:12px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',sans-serif;background:var(--gray-50);color:var(--gray-900);line-height:1.6}
+    .container{max-width:800px;margin:0 auto;padding:20px}
+    header{text-align:center;padding:32px 0 24px}
+    header h1{font-size:1.75rem;font-weight:700}
+    header p{color:var(--gray-500);margin-top:4px;font-size:.95rem}
+    .card{background:#fff;border-radius:var(--radius);box-shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);padding:24px;margin-bottom:20px}
+    .card h2{font-size:1.1rem;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .upload-area{border:2px dashed var(--gray-300);border-radius:var(--radius);padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+    .upload-area:hover,.upload-area.dragover{border-color:var(--primary);background:#eff6ff}
+    .upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .upload-icon{font-size:2.5rem;margin-bottom:8px}
+    .upload-area p{color:var(--gray-500);font-size:.9rem}
+    .upload-area .main-text{color:var(--gray-700);font-size:1rem;font-weight:500;margin-bottom:4px}
+
+    .thumbnails{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+    .thumb-item{position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:1px solid var(--gray-200)}
+    .thumb-item img{width:100%;height:100%;object-fit:cover}
+    .thumb-remove{position:absolute;top:2px;right:2px;width:22px;height:22px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+    .thumb-remove:hover{background:rgba(220,38,38,.9)}
+    .photo-count{font-size:.85rem;color:var(--gray-500);margin-top:8px}
+
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:12px 28px;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover:not(:disabled){background:var(--primary-dark)}
+    .btn-primary:disabled{background:var(--gray-300);cursor:not-allowed}
+    .btn-outline{background:#fff;color:var(--gray-700);border:1px solid var(--gray-300)}
+    .btn-outline:hover{background:var(--gray-50)}
+    .btn-sm{padding:6px 14px;font-size:.85rem}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-success:hover:not(:disabled){background:#15803d}
+    .actions{text-align:center;margin-top:20px}
+
+    .loading-overlay{display:none;text-align:center;padding:48px 24px}
+    .loading-overlay.show{display:block}
+    .spinner{width:48px;height:48px;border:4px solid var(--gray-200);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{color:var(--gray-500);font-size:.95rem}
+    .loading-steps{margin-top:16px;font-size:.85rem;color:var(--gray-500)}
+    .loading-steps .step{padding:4px 0;transition:color .3s}
+    .loading-steps .step.active{color:var(--primary);font-weight:500}
+    .loading-steps .step.done{color:var(--success)}
+
+    .result-section{display:none}
+    .result-section.show{display:block}
+    .summary-row{display:flex;gap:12px;margin-bottom:20px}
+    .summary-card{flex:1;background:var(--gray-50);border-radius:8px;padding:16px;text-align:center}
+    .summary-card .label{font-size:.8rem;color:var(--gray-500);margin-bottom:4px}
+    .summary-card .value{font-size:1.5rem;font-weight:700}
+    .summary-card .value.total{color:var(--primary)}
+
+    table{width:100%;border-collapse:collapse;font-size:.9rem}
+    thead th{text-align:left;padding:10px 12px;background:var(--gray-50);border-bottom:2px solid var(--gray-200);font-weight:600;font-size:.8rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em}
+    tbody td{padding:10px 12px;border-bottom:1px solid var(--gray-100)}
+    tbody tr:hover{background:var(--gray-50)}
+    .text-right{text-align:right}.text-center{text-align:center}
+
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:500}
+    .badge-high{background:#dcfce7;color:#166534}
+    .badge-medium{background:#fef9c3;color:#854d0e}
+    .badge-low{background:#fee2e2;color:#991b1b}
+    .qty-control{display:inline-flex;align-items:center;gap:4px}
+    .qty-btn{width:24px;height:24px;border:1px solid var(--gray-300);border-radius:4px;background:#fff;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center}
+    .qty-btn:hover{background:var(--gray-100)}
+    .qty-value{min-width:24px;text-align:center;font-weight:600}
+    .total-row td{font-weight:700;font-size:1rem;border-top:2px solid var(--gray-300);padding-top:14px}
+
+    .notice{margin-top:16px;padding:12px 16px;background:#fffbeb;border-radius:8px;font-size:.85rem;color:#92400e;border:1px solid #fde68a}
+    .error-message{display:none;padding:16px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#991b1b;margin-top:16px}
+    .error-message.show{display:block}
+
+    .pdf-section{display:none;margin-top:20px}
+    .pdf-section.show{display:block}
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:.85rem;font-weight:600;color:var(--gray-700);margin-bottom:6px}
+    .form-group input,.form-group textarea{width:100%;padding:10px 14px;border:1px solid var(--gray-300);border-radius:8px;font-size:.95rem;font-family:inherit;transition:border-color .2s}
+    .form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+    .form-row{display:flex;gap:16px}
+    .form-row .form-group{flex:1}
+
+    @media(max-width:600px){
+      .container{padding:12px}
+      header h1{font-size:1.4rem}
+      .summary-row{flex-direction:column}
+      table{font-size:.8rem}
+      thead th,tbody td{padding:8px 6px}
+      .form-row{flex-direction:column}
+      .thumb-item{width:80px;height:80px}
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>写真で見積もり</h1>
+    <p>家財処分の概算見積もりを写真から自動作成 - 片付けサポート関西</p>
+  </header>
+
+  <!-- アップロード（複数対応） -->
+  <div class="card" id="upload-card">
+    <h2>写真をアップロード（最大20枚）</h2>
+    <div class="upload-area" id="upload-area">
+      <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+      <div class="upload-icon">&#128247;</div>
+      <p class="main-text">クリックまたはドラッグ&ドロップで写真を選択</p>
+      <p>JPEG, PNG, WebP に対応 / 複数選択可 / 最大20枚</p>
+    </div>
+    <div class="thumbnails" id="thumbnails"></div>
+    <p class="photo-count" id="photo-count" style="display:none"></p>
+    <div class="actions">
+      <button class="btn btn-primary" id="estimate-btn" disabled onclick="submitEstimate()">見積もりを作成</button>
+    </div>
+  </div>
+
+  <!-- ローディング -->
+  <div class="card loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p class="loading-text">AI が写真を分析しています...</p>
+    <div class="loading-steps">
+      <div class="step active" id="step1">1. 写真をアップロード中...</div>
+      <div class="step" id="step2">2. 物品を識別中...</div>
+      <div class="step" id="step3">3. 見積もりを計算中...</div>
+    </div>
+  </div>
+
+  <div class="error-message" id="error-message"></div>
+
+  <!-- 見積もり結果（品ごとの金額は非表示） -->
+  <div class="result-section" id="result-section">
+    <div class="card">
+      <h2>見積もり結果</h2>
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="label">識別品目数</div>
+          <div class="value" id="item-count">-</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">合計点数</div>
+          <div class="value" id="total-qty">-</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">概算見積もり</div>
+          <div class="value total" id="total-price">-</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>品目</th>
+            <th>カテゴリ</th>
+            <th class="text-center">数量</th>
+            <th class="text-center">確度</th>
+          </tr>
+        </thead>
+        <tbody id="result-body"></tbody>
+      </table>
+      <div class="notice" id="notice-area" style="display:none;"></div>
+    </div>
+
+    <!-- PDF出力フォーム -->
+    <div class="card pdf-section show" id="pdf-section">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        見積書PDF出力
+      </h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="client-name">宛名（お客様名）</label>
+          <input type="text" id="client-name" placeholder="例：山田 太郎 様">
+        </div>
+        <div class="form-group">
+          <label for="estimate-date">見積日</label>
+          <input type="date" id="estimate-date">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="company-name">発行者（会社名）</label>
+          <input type="text" id="company-name" value="片付けサポート関西">
+        </div>
+        <div class="form-group">
+          <label for="subject">件名</label>
+          <input type="text" id="subject" value="家財処分">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="estimate-note">備考</label>
+        <textarea id="estimate-note" rows="2" placeholder="例：2階作業、エレベーター無し"></textarea>
+      </div>
+      <div class="actions">
+        <button class="btn btn-success" id="pdf-btn" onclick="generatePDF()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          見積書PDFをダウンロード
+        </button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-outline" onclick="resetAll()">新しい写真で見積もり</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 複数画像管理
+// ============================================================
+const MAX_PHOTOS = 20;
+let selectedFiles = [];
+let estimateData = null;
+
+const uploadArea = document.getElementById('upload-area');
+const fileInput = document.getElementById('file-input');
+const thumbnails = document.getElementById('thumbnails');
+const photoCount = document.getElementById('photo-count');
+const estimateBtn = document.getElementById('estimate-btn');
+
+document.getElementById('estimate-date').valueAsDate = new Date();
+
+fileInput.addEventListener('change', (e) => {
+  addFiles(Array.from(e.target.files));
+  fileInput.value = '';
+});
+uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+uploadArea.addEventListener('drop', (e) => {
+  e.preventDefault(); uploadArea.classList.remove('dragover');
+  addFiles(Array.from(e.dataTransfer.files));
+});
+
+function addFiles(files) {
+  for (const f of files) {
+    if (!f.type.match(/^image\/(jpeg|png|webp|gif)$/)) continue;
+    if (selectedFiles.length >= MAX_PHOTOS) { showError(`写真は最大${MAX_PHOTOS}枚までです。`); break; }
+    selectedFiles.push(f);
+  }
+  renderThumbnails();
+  estimateBtn.disabled = selectedFiles.length === 0;
+  hideError();
+}
+
+function removeFile(idx) {
+  selectedFiles.splice(idx, 1);
+  renderThumbnails();
+  estimateBtn.disabled = selectedFiles.length === 0;
+}
+
+function renderThumbnails() {
+  thumbnails.innerHTML = '';
+  selectedFiles.forEach((f, idx) => {
+    const div = document.createElement('div');
+    div.className = 'thumb-item';
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(f);
+    img.alt = f.name;
+    const btn = document.createElement('button');
+    btn.className = 'thumb-remove';
+    btn.innerHTML = '&times;';
+    btn.onclick = () => removeFile(idx);
+    div.appendChild(img);
+    div.appendChild(btn);
+    thumbnails.appendChild(div);
+  });
+  if (selectedFiles.length > 0) {
+    photoCount.textContent = `${selectedFiles.length} / ${MAX_PHOTOS} 枚選択中`;
+    photoCount.style.display = '';
+  } else {
+    photoCount.style.display = 'none';
+  }
+}
+
+function resetAll() {
+  selectedFiles = [];
+  estimateData = null;
+  renderThumbnails();
+  estimateBtn.disabled = true;
+  document.getElementById('result-section').classList.remove('show');
+  document.getElementById('upload-card').style.display = '';
+}
+
+// ============================================================
+// 見積もり送信（実API呼び出し）
+// ============================================================
+async function submitEstimate() {
+  if (selectedFiles.length === 0) return;
+  estimateBtn.disabled = true;
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('result-section').classList.remove('show');
+  hideError();
+
+  const steps = ['step1', 'step2', 'step3'];
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i > 0) document.getElementById(steps[i-1]).classList.replace('active', 'done');
+    if (i < steps.length) { document.getElementById(steps[i]).classList.add('active'); i++; }
+    else clearInterval(iv);
+  }, 2000);
+
+  try {
+    // 各写真を順番にAPI送信し、結果をマージ
+    const allDetected = [];
+    for (const file of selectedFiles) {
+      const formData = new FormData();
+      formData.append('image', file);
+      const resp = await fetch('/api/estimate', { method: 'POST', body: formData });
+      const data = await resp.json();
+      if (!resp.ok || data.error) throw new Error(data.error || 'サーバーエラー');
+      if (data.detected_items) allDetected.push(...data.detected_items);
+    }
+
+    // 重複品目を数量でマージ
+    const merged = {};
+    for (const d of allDetected) {
+      const key = d.item_name;
+      if (merged[key]) {
+        merged[key].quantity += (d.quantity || 1);
+      } else {
+        merged[key] = { ...d, quantity: d.quantity || 1 };
+      }
+    }
+
+    // マージ済みデータで見積もりを再計算
+    const mergedItems = Object.values(merged);
+    const resp2 = await fetch('/api/estimate-calc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: mergedItems }),
+    }).catch(() => null);
+
+    let estimate;
+    if (resp2 && resp2.ok) {
+      estimate = await resp2.json();
+    } else {
+      // フォールバック: 最後のレスポンスを使う
+      estimate = { line_items: mergedItems, total: 0, item_count: 0, unmatched_items: [] };
+    }
+
+    estimateData = { detected_items: mergedItems, estimate: estimate.estimate || estimate };
+    renderResult(estimateData);
+
+  } catch (err) {
+    showError(err.message);
+    document.getElementById('upload-card').style.display = '';
+  } finally {
+    clearInterval(iv);
+    steps.forEach(id => { document.getElementById(id).classList.remove('active', 'done'); });
+    document.getElementById('loading').classList.remove('show');
+    estimateBtn.disabled = false;
+  }
+}
+
+// ============================================================
+// 結果描画（品ごとの金額は非表示、合計のみ表示）
+// ============================================================
+function renderResult(data) {
+  const est = data.estimate;
+  const body = document.getElementById('result-body');
+  body.innerHTML = '';
+  document.getElementById('item-count').textContent = est.line_items.length + '種';
+  document.getElementById('total-qty').textContent = est.item_count + '点';
+  document.getElementById('total-price').textContent = fp(est.total);
+
+  est.line_items.forEach((item, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><strong>' + esc(item.item_name) + '</strong></td>' +
+      '<td>' + esc(item.category || '') + '</td>' +
+      '<td class="text-center">' +
+        '<div class="qty-control">' +
+          '<button class="qty-btn" onclick="changeQty(' + idx + ',-1)">-</button>' +
+          '<span class="qty-value" id="qty-' + idx + '">' + item.quantity + '</span>' +
+          '<button class="qty-btn" onclick="changeQty(' + idx + ',1)">+</button>' +
+        '</div>' +
+      '</td>' +
+      '<td class="text-center"><span class="badge badge-' + (item.confidence||'medium') + '">' +
+        ({"high":"高","medium":"中","low":"低"}[item.confidence||'medium']) + '</span></td>';
+    body.appendChild(tr);
+  });
+
+  const na = document.getElementById('notice-area');
+  const notices = [];
+  if (est.unmatched_items && est.unmatched_items.length > 0) {
+    notices.push('以下の品目はデータベースに未登録のため仮単価で計算: ' + est.unmatched_items.join('、'));
+  }
+  notices.push('この見積もりはAIによる自動判定です。数量は手動で調整できます。');
+  na.innerHTML = notices.map(n => '&#9888;&#65039; ' + n).join('<br>');
+  na.style.display = 'block';
+  document.getElementById('result-section').classList.add('show');
+}
+
+function changeQty(idx, delta) {
+  const item = estimateData.estimate.line_items[idx];
+  item.quantity = Math.max(0, item.quantity + delta);
+  item.subtotal = (item.unit_price || 0) * item.quantity;
+  document.getElementById('qty-' + idx).textContent = item.quantity;
+  const nt = estimateData.estimate.line_items.reduce((s, i) => s + (i.subtotal || 0), 0);
+  estimateData.estimate.total = nt;
+  estimateData.estimate.item_count = estimateData.estimate.line_items.reduce((s, i) => s + i.quantity, 0);
+  document.getElementById('total-price').textContent = fp(nt);
+  document.getElementById('total-qty').textContent = estimateData.estimate.item_count + '点';
+}
+
+// ============================================================
+// PDF生成（サーバーAPI呼び出し）
+// ============================================================
+async function generatePDF() {
+  const clientName = document.getElementById('client-name').value.trim();
+  if (!clientName) { alert('宛名を入力してください'); document.getElementById('client-name').focus(); return; }
+
+  const pdfData = {
+    client_name: clientName,
+    estimate_date: document.getElementById('estimate-date').value,
+    company_name: document.getElementById('company-name').value.trim(),
+    subject: document.getElementById('subject').value.trim(),
+    note: document.getElementById('estimate-note').value.trim(),
+    items: estimateData.estimate.line_items.map(i => ({
+      item_name: i.item_name,
+      category: i.category || '',
+      quantity: i.quantity,
+      unit_price: i.unit_price || 0,
+      subtotal: i.subtotal || 0,
+    })),
+    total: estimateData.estimate.total,
+  };
+
+  const pdfBtn = document.getElementById('pdf-btn');
+  pdfBtn.disabled = true;
+  pdfBtn.textContent = 'PDF生成中...';
+
+  try {
+    const resp = await fetch('/api/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pdfData),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: 'PDF生成に失敗しました' }));
+      throw new Error(err.error || 'PDF生成エラー');
+    }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '見積書_' + clientName.replace(/\s+/g, '_') + '.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('エラー: ' + e.message);
+  } finally {
+    pdfBtn.disabled = false;
+    pdfBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 見積書PDFをダウンロード';
+  }
+}
+
+function fp(n) { return '\u00a5' + n.toLocaleString('ja-JP'); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function showError(m) { const el = document.getElementById('error-message'); el.textContent = m; el.classList.add('show'); }
+function hideError() { document.getElementById('error-message').classList.remove('show'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+category,item_name,item_name_en,size,unit_price,notes
+家具,食器棚（大）,large cupboard,大,20500,
+家具,食器棚（中）,medium cupboard,中,14300,
+家電,冷蔵庫（大）,large refrigerator,大,20500,
+家電,冷蔵庫（中）,medium refrigerator,中,17000,
+家電,冷蔵庫（小）,small refrigerator,小,14000,
+その他,ゴミ袋,garbage bag,小,1435,1袋あたり
+家具,椅子,chair,小,3075,1脚あたり
+家具,テーブル,table,中,4100,
+家具,衣装ケース,clothing case,小,3075,1個あたり
+家具,カラーボックス,storage box,小,3075,
+家電,レンジ,microwave,小,1025,
+家電,炊飯器,rice cooker,小,1025,
+その他,段ボール,cardboard box,小,2100,1箱あたり
+その他,キッチン用品,kitchen supplies,小,2050,
+その他,掃除用具,cleaning supplies,小,2050,
+家具,棚（大）,large shelf,大,20500,
+家具,棚（中）,medium shelf,中,4100,
+家具,ソファ（1人用）,sofa 1-seater,中,9900,
+家具,ソファ（2人用）,sofa 2-seater,大,14350,
+家具,ソファ（3人用）,sofa 3-seater,大,22000,
+家電,ファンヒーター,fan heater,小,2050,
+家具,たんす（大）,large wardrobe,大,20500,
+家具,たんす（中）,medium wardrobe,中,17000,
+家具,鏡台,dresser,中,10250,
+家電,扇風機,electric fan,小,4100,
+家具,テレビ台,TV stand,中,8200,
+家電,エアコン,air conditioner,中,6150,取り外し工賃含む
+家電,洗濯機,washing machine,大,8200,
+その他,植木,potted plant,小,1025,
+その他,洋服,clothes,小,1025,
+その他,布団,futon,中,5125,
+家電,照明器具,lighting fixture,小,2050,
+その他,食器類,dishes,小,2050,
+家具,ベッド（S）,single bed,大,19500,シングル
+家具,ベッド（SD）,semi-double bed,大,22500,セミダブル
+家具,ベッド（D）,double bed,大,27000,ダブル
+その他,仏壇,Buddhist altar,大,60000,
+その他,自転車,bicycle,大,5500,
+家電,テレビ,TV,中,6000,
+家電,テレビ（大）,large TV,大,9900,
+家電,掃除機,vacuum cleaner,小,4800,
+その他,トレッドミル,treadmill,大,18000,
+その他,機械工具,machine tools,小,1000,
+その他,車椅子,wheelchair,中,2500,
+その他,畳,tatami mat,中,2000,
+その他,傘,umbrella,小,190,1本あたり
+その他,キャリーケース,carry case,中,3800,
+その他,カーペット,carpet,中,5500,
