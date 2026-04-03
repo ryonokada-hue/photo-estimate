@@ -371,7 +371,7 @@ def generate_pdf():
             output_path=tmp_path,
             client_name=client_name,
             estimate_date=data.get("estimate_date", ""),
-            company_name=data.get("company_name", "珇付けサポート関西"),
+            company_name=data.get("company_name", "総合福祉支援サポート"),
             subject=data.get("subject", "家財処分"),
             note=data.get("note", ""),
             items=data.get("items", []),
