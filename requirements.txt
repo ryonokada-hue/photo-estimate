@@ -1,0 +1,6 @@
+flask>=3.0
+flask-cors>=4.0
+anthropic>=0.40
+reportlab>=4.0
+gunicorn>=21.2
+Pillow>=10.0
