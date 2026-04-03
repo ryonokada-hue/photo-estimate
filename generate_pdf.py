@@ -14,16 +14,57 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 # フォント設定
-_FONT_PATH = "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf"
-if os.path.exists(_FONT_PATH):
-    pdfmetrics.registerFont(TTFont("JaCJK", _FONT_PATH))
-else:
+def _setup_font():
+    """日本語フォントを見つけて登録する。なければダウンロードする。"""
     import glob
-    cjk = glob.glob("/usr/share/fonts/**/NotoSansCJK*.ttc", recursive=True)
-    if cjk:
-        pdfmetrics.registerFont(TTFont("JaCJK", cjk[0], subfontIndex=0))
+    import urllib.request
 
-JA_FONT = "JaCJK"      # 日本語(CJK)用
+    # 候補パスを順に試す
+    font_paths = [
+        "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    ]
+    # glob検索も追加
+    for pattern in ["/usr/share/fonts/**/NotoSansCJK*.ttc",
+                    "/usr/share/fonts/**/NotoSans*CJK*.otf",
+                    "/usr/share/fonts/**/*CJK*.ttf",
+                    "/usr/share/fonts/**/*gothic*.ttf",
+                    "/usr/share/fonts/**/*Gothic*.ttf"]:
+        font_paths.extend(glob.glob(pattern, recursive=True))
+
+    for fp in font_paths:
+        if os.path.exists(fp):
+            try:
+                if fp.endswith(".ttc"):
+                    pdfmetrics.registerFont(TTFont("JaCJK", fp, subfontIndex=0))
+                else:
+                    pdfmetrics.registerFont(TTFont("JaCJK", fp))
+                return "JaCJK"
+            except Exception:
+                continue
+
+    # システムにフォントがない場合、NotoSansJPをダウンロード
+    local_font = os.path.join(os.path.dirname(__file__), "NotoSansJP-Regular.ttf")
+    if not os.path.exists(local_font):
+        url = "https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf"
+        try:
+            urllib.request.urlretrieve(url, local_font)
+        except Exception:
+            # 別のURL
+            url2 = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/Variable/TTF/NotoSansCJKjp-VF.ttf"
+            try:
+                urllib.request.urlretrieve(url2, local_font)
+            except Exception:
+                return "Helvetica"  # 最終フォールバック
+
+    try:
+        pdfmetrics.registerFont(TTFont("JaCJK", local_font))
+        return "JaCJK"
+    except Exception:
+        return "Helvetica"
+
+JA_FONT = _setup_font()
 EN_FONT = "Helvetica"   # ASCII/数字/記号用
 
 
@@ -250,7 +291,7 @@ if __name__ == "__main__":
         {"item_name": "冷蔵庫（大）", "category": "家電", "quantity": 1, "unit_price": 20500, "subtotal": 20500},
         {"item_name": "洗濯機", "category": "家電", "quantity": 1, "unit_price": 8200, "subtotal": 8200},
         {"item_name": "テーブル", "category": "家具", "quantity": 1, "unit_price": 4100, "subtotal": 4100},
-        {"item_name": "椅子", "category": "家具", "quantity": 4, "unit_price": 3075, "subtotal": 12300},
+        {"item_name": "椅e��", "category": "家具", "quantity": 4, "unit_price": 3075, "subtotal": 12300},
         {"item_name": "テレビ", "category": "家電", "quantity": 1, "unit_price": 6000, "subtotal": 6000},
         {"item_name": "テレビ台", "category": "家具", "quantity": 1, "unit_price": 8200, "subtotal": 8200},
         {"item_name": "カラーボックス", "category": "家具", "quantity": 2, "unit_price": 3075, "subtotal": 6150},
